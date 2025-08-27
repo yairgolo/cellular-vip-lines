@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>טופס הזמנה</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root{ --bg:#0f172a; --muted:#94a3b8; --accent:#22d3ee; --accent-2:#60a5fa; --ring:#334155; --success:#10b981; --danger:#ef4444; }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Heebo,system-ui,-apple-system,Segoe UI,Roboto,Arial,"Noto Sans",sans-serif; color:#e5e7eb;
+      background: radial-gradient(1200px 600px at 85% -10%, #438f82 10%, transparent 50%),
+                  radial-gradient(1000px 500px at -10% 120%, #0e7490 10%, transparent 60%),
+                  linear-gradient(180deg, #0b1020, var(--bg));
+    }
+    .container{ max-width:1100px; margin-inline:auto; padding:clamp(16px,2vw,32px); }
+    .brand{ display:flex; align-items:center; justify-content:center; margin-bottom:-30px; margin-top: -20px; }
+    .brand img{ height:170px; width:auto; object-fit:contain; filter: drop-shadow(0 4px 12px rgba(0,0,0,.35)); }
+
+    .title{ display:flex; align-items:center; gap:12px; margin-bottom:16px; justify-content: center; }
+    .title h1{ font-size:clamp(27px,3.6vw,30px); margin:0; font-weight:700 }
+    .card-wrap{ display:grid; gap:16px; grid-template-columns:1fr }
+    @media (min-width:960px){ .card-wrap{ grid-template-columns:1.1fr 0.9fr } }
+
+    .panel{ background:linear-gradient(180deg,#0b1220fa,#0b1220d9); border:1px solid var(--ring); border-radius:20px; padding:20px; box-shadow:0 10px 30px #0006; backdrop-filter:blur(8px) }
+    .panel h2{ margin:0 0 12px; font-size:18px; color:#f1f5f9 }
+
+    .grid{ display:grid; gap:12px }
+    .grid.cols-2{ grid-template-columns:1fr }
+    @media (min-width:640px){ .grid.cols-2{ grid-template-columns:1fr 1fr } }
+
+    label{ display:block; font-size:14px; margin-bottom:6px; color:#cbd5e1 }
+    input, select, textarea{ width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--ring); background:#0b1324; color:#e5e7eb; outline:none; transition:.15s border-color,.15s box-shadow }
+    input:focus, select:focus, textarea:focus{ border-color:var(--accent-2); box-shadow:0 0 0 3px #60a5fa22 }
+    .row{ display:flex; flex-wrap:wrap; gap:10px; align-items:center }
+    .row>*{ flex:1 }
+
+    .radio{ display:flex; align-items:center; gap:8px; cursor:pointer; user-select:none; padding:8px 12px; border:1px solid var(--ring); border-radius:999px; background:#0c162a }
+    .radio input{ accent-color:var(--accent) }
+
+    .actions{ display:flex; gap:10px; align-items:center; justify-content:center; margin-top:16px }
+    .btn{ appearance:none; border:none; border-radius:14px; padding:12px 18px; cursor:pointer; background:linear-gradient(90deg,var(--accent),var(--accent-2)); color:#001018; font-weight:700; box-shadow:0 10px 20px #0005; transition:transform .08s ease-in-out; }
+    .btn:active{ transform:translateY(1px) }
+    .btn.secondary{ background:linear-gradient(90deg,#94a3b8,#64748b); color:#0b1324; }
+    .btn[disabled]{ opacity:.5; cursor:not-allowed }
+
+    /* Credit card preview */
+    .cc-section{ display:grid; gap:14px }
+    .cc-3d{ perspective:1000px }
+    .cc{ position:relative; width:100%; aspect-ratio:16/10; border-radius:20px; transform-style:preserve-3d; transition:transform .6s }
+    .cc.is-back{ transform:rotateY(180deg) }
+    .cc-face{ position:absolute; inset:0; border-radius:20px; padding:18px; display:flex; flex-direction:column; justify-content:space-between; backface-visibility:hidden; overflow:hidden; border:1px solid #1f2f48; box-shadow:inset 0 0 0 2px #ffffff08 }
+    .cc-face.front{ background:linear-gradient(135deg,#0b1324,#0c2037) }
+    .cc-face.back{ transform:rotateY(180deg); background:linear-gradient(135deg,#0b1324,#0c2037) }
+    .chip{ width:48px; height:36px; border-radius:6px; background:linear-gradient(120deg,#f8fafc,#94a3b8); box-shadow:inset 0 0 0 1px #0005 }
+    .brand-area{ display:flex; align-items:center; gap:8px; margin-inline-start:auto; font-weight:700 }
+
+    .ltr{ direction:ltr; unicode-bidi:plaintext; text-align:left }
+    .cc-number{ font:700 clamp(16px,4vw,26px) ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:1.6px }
+    .cc-row{ display:flex; justify-content:space-between; gap:12px; font-size:14px }
+    .cc-label{ color:#cbd5e1; font-size:12px }
+
+    .strip{ height:44px; background:#000; margin:-18px -18px 0 }
+    .cvv-box{ align-self:flex-end; margin:0 12px 10px auto; background:#fff; color:#111827; padding:6px 10px; border-radius:6px; font-weight:700; min-width:80px; text-align:center }
+
+    .invalid{ border-color:var(--danger)!important; box-shadow:0 0 0 3px #ef444422!important }
+    .ok{ border-color:var(--success) }
+
+    /* Brand themes */
+    .cc.brand-visa .front{ background:linear-gradient(135deg,#0b234d,#1e40af) }
+    .cc.brand-mc .front{ background:radial-gradient(400px 200px at 90% 10%,#f59e0b33,transparent 50%), linear-gradient(135deg,#1f2937,#0f172a) }
+    .cc.brand-amex .front{ background:linear-gradient(135deg,#0284c7,#06b6d4) }
+    .cc.brand-discover .front{ background:linear-gradient(135deg,#334155,#0b1324) }
+    .cc.brand-diners .front{ background:linear-gradient(135deg,#115e59,#0b1324) }
+    .cc.brand-jcb .front{ background:linear-gradient(135deg,#0ea5e9,#22c55e) }
+    .cc.brand-unionpay .front{ background:linear-gradient(135deg,#b91c1c,#0ea5e9) }
+
+    .brand-logo{ display:none; height:28px; width:auto; object-fit:contain }
+    .cc.brand-unknown #logo-unknown,
+    .cc.brand-visa #logo-visa,
+    .cc.brand-mc #logo-mc,
+    .cc.brand-amex #logo-amex,
+    .cc.brand-discover #logo-discover,
+    .cc.brand-diners #logo-diners,
+    .cc.brand-jcb #logo-jcb,
+    .cc.brand-unionpay #logo-unionpay{ display:block }
+
+    /* Combobox */
+    .combo{ position:relative }
+    .combo input{ direction:rtl }
+    .listbox{ position:absolute; inset-inline:0; top:100%; z-index:20; background:#0b1324; border:1px solid var(--ring); border-radius:12px; margin-top:6px; max-height:200px; overflow:auto; box-shadow:0 8px 24px #0006; display:none }
+    .listbox.show{ display:block }
+    .option{ padding:10px 12px; cursor:pointer; border-bottom:1px solid #0f1a30 }
+    .option:last-child{ border-bottom:none }
+    .option:hover,.option.active{ background:#0f1a30 }
+
+    /* קווים */
+    .line{ display:grid; gap:10px; grid-template-columns: 1fr 1fr 2fr auto; align-items:end }
+    .line .remove{ min-width:44px }
+    .line:first-child .remove{ display:none !important; }
+
+    @media (max-width:640px){ .line{ grid-template-columns:1fr 1fr; } .line .remove{ grid-column:1 / -1 } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="brand">
+        <img id="brandLogo" src="./assets/new logo.png" alt="Brand Logo" />
+    </div>
+
+    <div class="title">
+      <h1>טופס ניוד</h1>
+    </div>
+
+    <form id="orderForm" class="card-wrap" novalidate>
+
+      <!-- פרטי לקוח -->
+      <section class="panel">
+        <h2>פרטי לקוח</h2>
+        <div class="grid cols-2">
+          <div>
+            <label for="idNumber">תעודת זהות / ח.פ / דרכון *</label>
+            <input id="idNumber" name="idNumber" required placeholder="הקלד/י מספר מזהה" inputmode="numeric" pattern="[0-9]*">
+          </div>
+          <div>
+            <label>סוג לקוח</label>
+            <div class="row">
+              <label class="radio"><input type="radio" name="customerType" value="private" checked>פרטי</label>
+              <label class="radio"><input type="radio" name="customerType" value="business"> עסק</label>
+              <label class="radio"><input type="radio" name="customerType" value="passport"> דרכון</label>
+            </div>
+          </div>
+          <div>
+            <label for="firstName">שם פרטי *</label>
+            <input id="firstName" name="firstName" required>
+          </div>
+          <div>
+            <label for="lastName">שם משפחה *</label>
+            <input id="lastName" name="lastName" required>
+          </div>
+
+          <!-- Combobox עיר -->
+          <div class="combo">
+            <label for="cityInput">עיר *</label>
+            <input id="cityInput" required placeholder="הקלד/י להתחלת חיפוש" autocomplete="off">
+            <div id="cityList" role="listbox" class="listbox" aria-label="ערים"></div>
+            <input type="hidden" id="cityCode" name="cityCode">
+          </div>
+
+          <!-- Combobox רחוב -->
+          <div class="combo">
+            <label for="streetInput">רחוב *</label>
+            <input id="streetInput" required placeholder="בחר/י עיר תחילה" autocomplete="off" disabled>
+            <div id="streetList" role="listbox" class="listbox" aria-label="רחובות"></div>
+          </div>
+
+          <div>
+            <label for="houseNumber">מספר בית *</label>
+            <input id="houseNumber" name="houseNumber" inputmode="numeric" pattern="[0-9]*" required>
+          </div>
+          <div>
+            <label for="floor">קומה</label>
+            <input id="floor" name="floor" inputmode="numeric" pattern="[0-9]*">
+          </div>
+          <div>
+            <label for="apt">מספר דירה</label>
+            <input id="apt" name="apt" inputmode="numeric" pattern="[0-9]*">
+          </div>
+          <div>
+            <label for="email">דוא"ל לשליחת חשבונית *</label>
+            <input id="email" name="email" type="email" required placeholder="name@example.com">
+          </div>
+          <div>
+            <label for="phone">טלפון ליצירת קשר *</label>
+            <input id="phone" name="phone" required inputmode="tel" placeholder="05X-XXXXXXX">
+          </div>
+        </div>
+      </section>
+
+      <!-- פרטי קווים -->
+      <section class="panel">
+        <h2>פרטי קווים</h2>
+        <div id="linesContainer" class="grid" style="gap:14px;"></div>
+        <div class="actions" style="justify-content:flex-start">
+          <button id="addLineBtn" type="button" class="btn secondary">הוסף קו +</button>
+        </div>
+      </section>
+
+      <!-- תשלום -->
+      <section class="panel">
+        <h2>פרטי תשלום – כרטיס אשראי</h2>
+        <div class="cc-section">
+          <div class="cc-3d">
+            <div id="cc" class="cc brand-unknown" aria-hidden="true">
+              <div class="cc-face front">
+                <div class="row">
+                  <div class="chip"></div>
+                  <div class="brand-area">
+                    <img id="logo-unknown" class="brand-logo" src="assets/new logo.png" alt="Card">
+                    <img id="logo-visa" class="brand-logo" src="assets/logos/Visa.png" alt="Visa">
+                    <img id="logo-mc" class="brand-logo" src="assets/logos/MasterCard.png" alt="Mastercard">
+                    <img id="logo-amex" class="brand-logo" src="assets/logos/American_Express.png" alt="Amex">
+                    <img id="logo-discover" class="brand-logo" src="assets/logos/Discover_Card.png" alt="Discover">
+                    <img id="logo-diners" class="brand-logo" src="assets/logos/Diners_Club.png" alt="Diners">
+                    <img id="logo-jcb" class="brand-logo" src="assets/logos/JCB.png" alt="JCB">
+                    <img id="logo-unionpay" class="brand-logo" src="assets/logos/UnionPay.png" alt="UnionPay">
+                  </div>
+                </div>
+                <div id="ccNumberPreview" class="cc-number ltr">•••• •••• •••• ••••</div>
+                <div class="cc-row">
+                  <div>
+                    <div class="cc-label">שם בעל/ת הכרטיס</div>
+                    <div id="ccNamePreview">שם על הכרטיס</div>
+                  </div>
+                  <div>
+                    <div class="cc-label">תוקף</div>
+                    <div><span id="ccExpPreview">MM/YY</span></div>
+                  </div>
+                </div>
+              </div>
+              <div class="cc-face back">
+                <div class="strip"></div>
+                <div class="cvv-box" id="ccCvvPreview">CVV</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid cols-2">
+            <div>
+              <label for="cardNumber">מספר כרטיס *</label>
+              <input id="cardNumber" class="ltr" name="cardNumber" inputmode="numeric" autocomplete="cc-number" placeholder="0000 0000 0000 0000" maxlength="19" required>
+            </div>
+            <div>
+              <label for="cardholder">שם בעל/ת הכרטיס *</label>
+              <input id="cardholder" name="cardholder" autocomplete="cc-name" required placeholder="כפי שמופיע על הכרטיס">
+            </div>
+            <div>
+              <label for="expMonth">תוקף (חודש/שנה) *</label>
+              <div class="row">
+                <select id="expMonth" name="expMonth" autocomplete="cc-exp-month" required></select>
+                <select id="expYear" name="expYear" autocomplete="cc-exp-year" required></select>
+              </div>
+            </div>
+            <div>
+              <label for="cvv">CVV *</label>
+              <input id="cvv" class="ltr" name="cvv" inputmode="numeric" pattern="[0-9]*" autocomplete="cc-csc" required placeholder="3–4 ספרות">
+            </div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn" type="submit" style="width:40%">שלח</button>
+        </div>
+      </section>
+    </form>
+  </div>
+
+  <script>
+    // ===== Config =====
+    const WA_NUMBER = '972523201207'; // מספר הוואטסאפ שלך — ספרות בלבד, בינלאומי, בלי +
+    const WA_BASE = 'https://wa.me/';
+
+    // ===== Helpers =====
+    const onlyDigits = (v) => (v || '').replace(/\D+/g, '');
+
+    function detectBrand(num){
+      const n = onlyDigits(num);
+      if(/^4/.test(n)) return {name:'Visa', code:'visa'};
+      if(/^(5[1-5]|22[2-9]|2[3-6]\d|27[01]|2720)/.test(n)) return {name:'Mastercard', code:'mc'};
+      if(/^3[47]/.test(n)) return {name:'American Express', code:'amex'};
+      if(/^6(011|5|4[4-9])/.test(n)) return {name:'Discover', code:'discover'};
+      if(/^3(0[0-5]|[68])/.test(n)) return {name:'Diners', code:'diners'};
+      if(/^35(2[89]|[3-8]\d)/.test(n)) return {name:'JCB', code:'jcb'};
+      if(/^62/.test(n)) return {name:'UnionPay', code:'unionpay'};
+      return {name:'חברה לא מזוהה', code:'unknown'};
+    }
+
+    // Luhn (כרטיסי אשראי וגם בסיס לת״ז)
+    function luhnCheck(num){
+      const s = onlyDigits(num);
+      if(!s) return false;
+      let sum=0, dbl=false;
+      for(let i=s.length-1;i>=0;i--){
+        let d = +s[i];
+        if(dbl){ d*=2; if(d>9) d-=9 }
+        sum+=d; dbl=!dbl;
+      }
+      return sum % 10 === 0;
+    }
+
+    // ת״ז ישראלית – 9 ספרות עם ריפוד לאפסים מובילים, חישוב מוד־10 בסגנון Luhn (כפול 1,2,1,...)
+    function isValidIsraeliID(id){
+      let s = onlyDigits(id);
+      if(!s || s.length > 9) return false;
+      s = s.padStart(9,'0');
+      let sum = 0;
+      for(let i=0;i<9;i++){
+        let d = +s[i] * ((i % 2) + 1);
+        if(d > 9) d -= 9;
+        sum += d;
+      }
+      return sum % 10 === 0;
+    }
+
+    function group4(n){ return n.replace(/(\d{1,4})(\d{1,4})?(\d{1,4})?(\d{1,4})?/, (m,a,b,c,d)=>[a,b,c,d].filter(Boolean).join(' ')) }
+    function preview16(num){
+      const digits = onlyDigits(num).slice(0,16);
+      const padded = (digits + '•'.repeat(16 - digits.length)).slice(0,16);
+      return padded.replace(/(.{4})(.{4})(.{4})(.{4})/, '$1 $2 $3 $4');
+    }
+
+    // ===== Elements =====
+    const form = document.getElementById('orderForm');
+
+    const idNumber = document.getElementById('idNumber');
+
+    const cardNumber = document.getElementById('cardNumber'); cardNumber.setAttribute('dir','ltr');
+    const cardholder = document.getElementById('cardholder');
+    const expMonth = document.getElementById('expMonth');
+    const expYear = document.getElementById('expYear');
+    const cvv = document.getElementById('cvv'); cvv.setAttribute('dir','ltr');
+
+    const cityInput = document.getElementById('cityInput');
+    const cityList  = document.getElementById('cityList');
+    const cityCode  = document.getElementById('cityCode');
+    const streetInput = document.getElementById('streetInput');
+    const streetList  = document.getElementById('streetList');
+
+    const cc = document.getElementById('cc');
+    const ccNumberPreview = document.getElementById('ccNumberPreview');
+    const ccNamePreview = document.getElementById('ccNamePreview');
+    const ccExpPreview = document.getElementById('ccExpPreview');
+    const ccCvvPreview = document.getElementById('ccCvvPreview');
+
+    // Months/Years
+    for(let m=1;m<=12;m++){ const v = m.toString().padStart(2,'0'); expMonth.insertAdjacentHTML('beforeend', `<option value="${v}">${v}</option>`); }
+    const now = new Date(); const startYear = now.getFullYear();
+    for(let y=0;y<=12;y++){ const year = startYear + y; expYear.insertAdjacentHTML('beforeend', `<option value="${year.toString().slice(-2)}">${year}</option>`); }
+
+    // Data sources
+    const CITY_SRC = 'data/cities.json';
+    const STREETS_SRC = (code)=>`data/streets/${code}.json`;
+    const cities = [];              // {code,name}
+    const streetsCache = new Map(); // code -> [streets]
+
+    (async function loadCities(){
+      try{
+        const res = await fetch(CITY_SRC);
+        const list = await res.json();
+        list.sort((a,b)=>a.name.localeCompare(b.name,'he',{sensitivity:'base'}));
+        cities.push(...list);
+      }catch(e){ console.error('loadCities', e); }
+    })();
+
+    // ===== Combobox infra =====
+    function renderList(listEl, items){
+      listEl.innerHTML = items.map((it,i)=>`<div class="option" data-index="${i}">${it.label}</div>`).join('');
+      listEl.classList.toggle('show', items.length>0);
+    }
+    function attachCombo(inputEl, listEl, sourceFn, onPick){
+      let items = [], active = -1;
+
+      function pick(i){ if(i<0||i>=items.length) return; onPick(items[i]); hide(); }
+      function hide(){ listEl.classList.remove('show'); active=-1; }
+      function updateActive(){
+        [...listEl.querySelectorAll('.option')].forEach((op,i)=>op.classList.toggle('active', i===active));
+        const activeEl = listEl.querySelector('.option.active');
+        if(activeEl){
+          const r = activeEl.getBoundingClientRect();
+          const pr = listEl.getBoundingClientRect();
+          if(r.top < pr.top) listEl.scrollTop += r.top - pr.top;
+          if(r.bottom > pr.bottom) listEl.scrollTop += r.bottom - pr.bottom;
+        }
+      }
+
+      inputEl.addEventListener('input', async ()=>{
+        const q = inputEl.value.trim();
+        items = await sourceFn(q);
+        renderList(listEl, items); active=-1;
+      });
+      inputEl.addEventListener('focus', async ()=>{
+        const q = inputEl.value.trim(); items = await sourceFn(q); renderList(listEl, items); active=-1;
+      });
+      listEl.addEventListener('mousedown', (e)=>{ const el = e.target.closest('.option'); if(!el) return; pick(+el.dataset.index); });
+      inputEl.addEventListener('keydown', (e)=>{
+        if(!listEl.classList.contains('show')) return;
+        if(e.key==='ArrowDown'){ active=Math.min(active+1, items.length-1); updateActive(); e.preventDefault(); }
+        else if(e.key==='ArrowUp'){ active=Math.max(active-1, 0); updateActive(); e.preventDefault(); }
+        else if(e.key==='Enter'){ if(active>=0){ pick(active); e.preventDefault(); } }
+        else if(e.key==='Escape'){ hide(); }
+      });
+      document.addEventListener('click', (e)=>{ if(!listEl.contains(e.target) && e.target!==inputEl){ hide(); } });
+    }
+
+    // City combobox
+    attachCombo(cityInput, cityList, async (q)=>{
+      const norm = (s)=>s.toLowerCase();
+      const filtered = q? cities.filter(c=> norm(c.name).startsWith(norm(q))): cities;
+      return filtered.map(c=>({ label:c.name, code:c.code }));
+    }, (item)=>{
+      cityInput.value = item.label;
+      cityCode.value = item.code;
+      streetInput.disabled=false; streetInput.placeholder='הקלד/י להתחלת חיפוש';
+      streetInput.value=''; streetList.innerHTML='';
+    });
+
+    // Street combobox
+    attachCombo(streetInput, streetList, async (q)=>{
+      const code = cityCode.value; if(!code) return [];
+      let streets = streetsCache.get(code);
+      if(!streets){
+        const res = await fetch(STREETS_SRC(code));
+        streets = await res.json();
+        streets.sort((a,b)=>a.localeCompare(b,'he',{sensitivity:'base'}));
+        streetsCache.set(code, streets);
+      }
+      const norm=(s)=>s.toLowerCase();
+      const filtered = q? streets.filter(s=> norm(s).startsWith(norm(q))): streets;
+      return filtered.map(s=>({ label:s }));
+    }, (item)=>{ streetInput.value = item.label; });
+
+    // ===== קווים מרובים (ניוד/חדש) =====
+    const linesContainer = document.getElementById('linesContainer');
+    const addLineBtn = document.getElementById('addLineBtn');
+
+    function refreshRemoveButtons(){
+      const lineNodes = [...document.querySelectorAll('.line')];
+      lineNodes.forEach((el, i)=>{
+        const btn = el.querySelector('.remove');
+        if(!btn) return;
+        if(i === 0){
+          btn.disabled = true; // מותר למחוק רק מהשני ואילך
+          btn.title = 'אי אפשר למחוק את הקו הראשון';
+        } else {
+          btn.disabled = false;
+          btn.title = 'מחק קו';
+        }
+      });
+    }
+
+    function createLine(initialType='port', initialNumber=''){
+      const idx = Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+      const wrapper = document.createElement('div');
+      wrapper.className = 'line panel';
+      wrapper.innerHTML = `
+        <div>
+          <label>סוג קו *</label>
+          <select name="lineType-${idx}">
+            <option value="port"${initialType==='port'?' selected':''}>ניוד</option>
+            <option value="new"${initialType==='new'?' selected':''}>חדש</option>
+          </select>
+        </div>
+        <div class="port-number-wrap">
+          <label>מספר לנייד ${initialType==='port' ? '*' : ''}</label>
+          <input name="portNumber-${idx}" placeholder="מספר לנייד" inputmode="numeric" pattern="[0-9]*" ${initialType==='port'?'required':''} value="${initialNumber}">
+        </div>
+        <div>
+          <button type="button" class="btn remove">מחיקה</button>
+        </div>
+      `;
+
+      const typeSel = wrapper.querySelector(`select[name="lineType-${idx}"]`);
+      const portWrap = wrapper.querySelector('.port-number-wrap');
+      const portInput = wrapper.querySelector(`input[name="portNumber-${idx}"]`);
+      const removeBtn = wrapper.querySelector('.remove');
+
+      function updatePortRequirement(){
+        const isPort = typeSel.value === 'port';
+        portWrap.querySelector('label').innerHTML = `מספר לנייד ${isPort ? '*' : ''}`;
+        portInput.required = isPort;
+        portInput.disabled = !isPort;
+        if(!isPort){ portInput.value=''; portInput.classList.remove('invalid'); }
+      }
+      typeSel.addEventListener('change', updatePortRequirement);
+      removeBtn.addEventListener('click', ()=>{
+        // מותר למחוק רק אם זה לא הקו הראשון
+        const allLines = [...document.querySelectorAll('.line')];
+        const index = allLines.indexOf(wrapper);
+        if(index <= 0) return;
+        wrapper.remove();
+        refreshRemoveButtons();
+      });
+
+      updatePortRequirement();
+      linesContainer.appendChild(wrapper);
+      refreshRemoveButtons();
+    }
+
+    addLineBtn.addEventListener('click', ()=> createLine('port',''));
+    createLine('port',''); // קו ראשון כברירת מחדל
+
+    // ===== כרטיס אשראי – תצוגה חיה + ולידציות =====
+    function setBrandTheme(code){ cc.className = `cc brand-${code}`; }
+    cardNumber.addEventListener('input', ()=>{
+      const digits = onlyDigits(cardNumber.value).slice(0,16);
+      cardNumber.value = group4(digits);
+      ccNumberPreview.textContent = preview16(digits);
+      const brand = detectBrand(digits); setBrandTheme(brand.code);
+      cvv.maxLength = brand.code==='amex'?4:3;
+      if(digits.length>=12){ cardNumber.classList.toggle('invalid', !luhnCheck(digits)); cardNumber.classList.toggle('ok', luhnCheck(digits)); } else { cardNumber.classList.remove('invalid','ok'); }
+    });
+    cardholder.addEventListener('input', ()=>{ ccNamePreview.textContent = cardholder.value.trim() || 'שם על הכרטיס'; });
+    function updateExpPreview(){ const mm=expMonth.value||'MM', yy=expYear.value||'YY'; ccExpPreview.textContent=`${mm}/${yy}`; }
+    expMonth.addEventListener('change', updateExpPreview); expYear.addEventListener('change', updateExpPreview);
+    cvv.addEventListener('input', ()=>{ ccCvvPreview.textContent = cvv.value || 'CVV'; });
+    cvv.addEventListener('focus', ()=> cc.classList.add('is-back')); cvv.addEventListener('blur', ()=> cc.classList.remove('is-back'));
+
+    // תוקף עתידי
+    function isFutureExpiry(mmYY){
+      const [mm, yy] = mmYY;
+      if(!mm || !yy) return false;
+      const m = +mm, y = +('20' + yy);
+      if(m<1 || m>12) return false;
+      const lastOfMonth = new Date(y, m, 0, 23, 59, 59, 999); // סוף החודש
+      return lastOfMonth >= new Date();
+    }
+
+    // ===== ולידציות כלליות =====
+    function require(el){ if(!el.checkValidity()){ el.classList.add('invalid'); return false } el.classList.remove('invalid'); return true }
+
+    // ת״ז – בזמן אמת
+    idNumber.addEventListener('input', ()=>{
+      const val = onlyDigits(idNumber.value);
+      idNumber.value = val; // משאיר ספרות בלבד
+      if(val.length>=1){
+        const isValid = isValidIsraeliID(val);
+        idNumber.classList.toggle('invalid', !isValid);
+        idNumber.classList.toggle('ok', isValid);
+      }else{
+        idNumber.classList.remove('invalid','ok');
+      }
+    });
+
+    function validateCombo(){
+      let ok = true;
+      if(!cityCode.value){ cityInput.classList.add('invalid'); ok=false }
+      if(!streetInput.value){ streetInput.classList.add('invalid'); ok=false }
+      return ok;
+    }
+    function validateLines(){
+      const lineEls = [...document.querySelectorAll('.line')];
+      if(lineEls.length===0){ alert('יש להוסיף לפחות קו אחד.'); return false; }
+      let ok = true;
+      lineEls.forEach(el=>{
+        const type = el.querySelector('select').value;
+        const portInput = el.querySelector('[name^="portNumber-"]');
+        if(type==='port'){
+          if(!onlyDigits(portInput.value)){ portInput.classList.add('invalid'); ok=false; }
+          else{ portInput.classList.remove('invalid'); }
+        }
+      });
+      if(!ok){ alert('אנא ודא/י שמולאו מספרי הנייד לקווים שמנוידים.'); }
+      return ok;
+    }
+
+    // ===== Submit -> WhatsApp =====
+    form.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+
+      // שדות חובה בסיסיים
+      const requiredIds = ['idNumber','firstName','lastName','houseNumber','email','phone','cardNumber','cardholder','expMonth','expYear','cvv'];
+      let ok = true; requiredIds.forEach(id=>{ const el=document.getElementById(id); ok = require(el) && ok; });
+
+      // ת״ז ישראלית (אם הוזנה ת״ז – נוודא תקינה)
+      if(!isValidIsraeliID(idNumber.value)){
+        ok = false; idNumber.classList.add('invalid');
+        alert('מספר תעודת הזהות שהוזן אינו תקין. ודא/י 9 ספרות (כולל אפסים מובילים).');
+      }
+
+      // עיר/רחוב + קווים
+      ok = validateCombo() && ok && validateLines();
+
+      // אשראי – מספר, תוקף, CVV
+      const digits = onlyDigits(cardNumber.value);
+      if(!luhnCheck(digits)){ cardNumber.classList.add('invalid'); ok=false; alert('מספר כרטיס האשראי אינו תקין.'); }
+
+      const expOk = isFutureExpiry([expMonth.value, expYear.value]);
+      if(!expOk){ ok=false; expMonth.classList.add('invalid'); expYear.classList.add('invalid'); alert('תוקף הכרטיס אינו תקף (עבר או שגוי).'); }
+      else{ expMonth.classList.remove('invalid'); expYear.classList.remove('invalid'); }
+
+      const brand = detectBrand(digits).code;
+      const cvvLen = (brand==='amex') ? 4 : 3;
+      if(onlyDigits(cvv.value).length !== cvvLen){ ok=false; cvv.classList.add('invalid'); alert(`CVV צריך להיות ${cvvLen} ספרות עבור הכרטיס שהזנת.`); }
+      else{ cvv.classList.remove('invalid'); }
+
+      if(!ok){ return; }
+
+      // איסוף הקווים
+      const lines = [...document.querySelectorAll('.line')].map((el,i)=>{
+        const type = el.querySelector('select').value;
+        const port = onlyDigits(el.querySelector('[name^="portNumber-"]').value);
+        let base = type==='new' ? 'מספר חדש' : `מספר לניוד: ${port}`;
+        return `קו ${i+1}: ${base}`;
+      });
+
+      const msg = [
+        'פרטי הזמנה:',
+        `לקוח/ה: ${document.getElementById('firstName').value} ${document.getElementById('lastName').value}`,
+        `מזהה: ${document.getElementById('idNumber').value}`,
+        'סוג לקוח: ' + [...document.querySelectorAll('input[name="customerType"]')].find(r=>r.checked).parentElement.textContent.trim(),
+        `עיר: ${cityInput.value}`,
+        `רחוב: ${streetInput.value} ${document.getElementById('houseNumber').value}`,
+        document.getElementById('floor').value? `קומה: ${document.getElementById('floor').value}` : null,
+        document.getElementById('apt').value? `דירה: ${document.getElementById('apt').value}` : null,
+        `טלפון: ${document.getElementById('phone').value}`,
+        `אימייל: ${document.getElementById('email').value}`,
+        '',
+        'קווים:',
+        ...lines,
+        '',
+        'תשלום:',
+        `כרטיס: ${digits}`,
+        `תוקף: ${document.getElementById('expMonth').value}/${document.getElementById('expYear').value}`,
+        `3 ספרות: ${cvv.value}`,
+        `שם על הכרטיס: ${document.getElementById('cardholder').value}`
+      ].filter(Boolean).join('\n');
+
+      const url = `${WA_BASE}${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
+      window.open(url, '_blank');
+    });
+  </script>
+</body>
+</html>
